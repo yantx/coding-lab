@@ -1,0 +1,8 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.galio.jasypt.JasyptAutoConfiguration
+
+org.springframework.boot.env.PropertySourceLoader=\
+com.galio.jasypt.JasyptPropertySourceLoader
+
+org.springframework.boot.env.EnvironmentPostProcessor=\
+com.galio.jasypt.JasyptEnvironmentPostProcessor
