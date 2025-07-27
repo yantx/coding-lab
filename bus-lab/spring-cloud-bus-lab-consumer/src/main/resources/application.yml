@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: bus-demo-consumer
+  rabbitmq:
+    host: 192.168.1.9
+    port: 5672
+    username: admin
+    password: 123456
+  cloud:
+    bus:
+      enabled: true
+#    stream:
+#      bindings:
+#        springCloudBusInput:
+#          destination: springCloudBus
+#        springCloudBusOutput:
+#          destination: springCloudBus
+management:
+  endpoints:
+    web:
+      exposure:
+        include: bus-refresh,bus-env
+logging:
+  level:
+    org.springframework.cloud.bus: TRACE
+    org.springframework.context.event: DEBUG
+    com.lab.bus: DEBUG
+    org.springframework.amqp: DEBUG
+    org.springframework.context.ApplicationListener: DEBUG
+server:
+  port: 8090
