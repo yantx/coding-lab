@@ -12,7 +12,7 @@ public class JasyptContext {
         this.prefix = prefix != null ? prefix : "ENC(";
         this.suffix = suffix != null ? suffix : ")";
 
-        this.encryptor = new SmartJasyptEncryptor(password, algorithm, prefix, suffix);
+        this.encryptor = new SmartJasyptEncryptor(password, algorithm, this.prefix, this.suffix);
     }
 
     public static synchronized void initialize(JasyptProperties properties) {

@@ -1,10 +1,9 @@
 package com.galio.jasypt;
 
-import org.jasypt.encryption.StringEncryptor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 
 import javax.annotation.PostConstruct;
 
@@ -24,10 +23,13 @@ public class JasyptAutoConfiguration {
         JasyptContext.initialize(properties);
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    public StringEncryptor stringEncryptor() {
+    @Bean("jasyptStringEncryptor")
+    public SmartJasyptEncryptor smartJasyptEncryptor() {
         return JasyptContext.getInstance().getStringEncryptor();
     }
 
+//    @Override
+//    public int getOrder() {
+//        return Ordered.HIGHEST_PRECEDENCE;
+//    }
 }

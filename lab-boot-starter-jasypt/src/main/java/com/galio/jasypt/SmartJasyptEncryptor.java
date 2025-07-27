@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
 public class SmartJasyptEncryptor implements StringEncryptor {
 
     private static final int MAX_RECURSION_DEPTH = 5;
+    private static final String DEFAULT_ALGORITHM_NAME = "PBEWithMD5AndDES";
     private final Pattern encPattern;
 
     private final PooledPBEStringEncryptor delegateEncryptor;
@@ -25,7 +26,7 @@ public class SmartJasyptEncryptor implements StringEncryptor {
     private final String suffix;
 
     public SmartJasyptEncryptor(String password) {
-        this(password, "PBEWithMD5AndDES", "ENC(", ")");
+        this(password, DEFAULT_ALGORITHM_NAME, "ENC(", ")");
     }
 
     public SmartJasyptEncryptor(String password, String algorithm) {
@@ -75,14 +76,12 @@ public class SmartJasyptEncryptor implements StringEncryptor {
                 input.endsWith(suffix) &&
                 input.indexOf(suffix, prefix.length()) == input.length() - suffix.length();
     }
-
     /**
      * 判断字符串是否加密（包含任何加密片段）
      */
     public boolean isEncrypted(String input) {
         return containsEncryptedFragments(input);
     }
-
     /**
      * 包装加密字符串
      */
@@ -153,10 +152,10 @@ public class SmartJasyptEncryptor implements StringEncryptor {
         SimpleStringPBEConfig config = new SimpleStringPBEConfig();
 
         config.setPassword(password);
-        config.setAlgorithm(algorithm);
+        config.setAlgorithm(StringUtils.hasText(algorithm) ? algorithm : this.DEFAULT_ALGORITHM_NAME);
         config.setKeyObtentionIterations("1000");
         config.setPoolSize("1");
-        config.setProviderName("SunJCE");
+//        config.setProviderName("SunJCE");
         config.setSaltGeneratorClassName("org.jasypt.salt.RandomSaltGenerator");
         config.setIvGeneratorClassName("org.jasypt.iv.NoIvGenerator");
         config.setStringOutputType("base64");

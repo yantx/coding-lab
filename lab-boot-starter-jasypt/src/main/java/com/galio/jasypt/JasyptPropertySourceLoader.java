@@ -99,12 +99,10 @@ public class JasyptPropertySourceLoader implements PropertySourceLoader, Ordered
         }
         return result;
     }
-
     @Override
     public int getOrder() {
         return Ordered.HIGHEST_PRECEDENCE; // 最高优先级
     }
-
     private SmartJasyptEncryptor createStringEncryptor() {
         String password = System.getProperty("jasypt.encryptor.password", "test_password");
         if (!StringUtils.hasText(password)) {
