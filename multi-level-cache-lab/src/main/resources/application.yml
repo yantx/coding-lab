@@ -1,0 +1,39 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: multi-level-cache-lab
+  redis:
+    host: 192.168.1.7
+    port: 6379
+    database: 0
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: 5000ms
+        max-idle: 8
+        min-idle: 0
+    timeout: 5000ms
+    password: redis@6379
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,caches
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+  metrics:
+    enable:
+      caffeine: true
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        caffeine.cache.gets: true
+
