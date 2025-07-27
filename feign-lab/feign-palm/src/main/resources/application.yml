@@ -1,13 +1,13 @@
-spring:
-  application:
-    name: eureka-client-b # 应用名称
-  jackson:
-    generator:
-      WRITE_BIGDECIMAL_AS_PLAIN: true # 将 BigDecimal 序列化为字符串
-    deserialization:
-      use-big-decimal-for-floats: true # 使用 BigDecimal 解析浮点数
 server:
-  port: 8082 # 随机端口
+  port: 8083
+spring:
+  jackson:
+    deserialization:
+      use-big-decimal-for-floats: true
+    generator:
+      write-bigdecimal-as-plain: true
+  application:
+    name: feign-plam
 eureka:
   client:
     serviceUrl:

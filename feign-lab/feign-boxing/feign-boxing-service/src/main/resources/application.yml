@@ -1,0 +1,21 @@
+server:
+  port: 8082
+spring:
+  jackson:
+    deserialization:
+      use-big-decimal-for-floats: true
+    generator:
+      write-bigdecimal-as-plain: true
+  application:
+    name: feign-boxing-service
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/ # 注册中心地址
+    registry-fetch-interval-seconds: 5 # 从注册中心获取服务列表的时间间隔
+    initial-instance-info-replication-interval-seconds: 1 # 初次向注册中心注册服务的时间间隔
+    instance-info-replication-interval-seconds: 5 # 向注册中心注册服务的时间间隔
+  instance:
+    preferIpAddress: true
+    lease-renewal-interval-in-seconds: 20 # 心跳时间间隔
+    lease-expiration-duration-in-seconds: 60 # 过期时间

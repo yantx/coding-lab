@@ -27,11 +27,19 @@ public class HelloController {
     @Value("${spring.application.name}")
     private String appName;
 
+    @Autowired
+    private SomeService someService;
+
 
     @GetMapping("/hello")
     public String hello() {
         return String.format(
                 "Hello from '%s'!", eurekaClient.getApplication(appName).getName());
+    }
+
+    @GetMapping("/loadBalance")
+    public String loadBalance() {
+        return someService.callService();
     }
 
 

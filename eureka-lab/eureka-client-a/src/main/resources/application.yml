@@ -1,24 +1,32 @@
 spring:
   application:
-    name: eureka-client-a # 应用名称
-  jackson:
-    generator:
-      WRITE_BIGDECIMAL_AS_PLAIN: true # 将数字序列化为字符串
-    deserialization:
-      use-big-decimal-for-floats: true # 使用 BigDecimal 解析浮点数
-server:
-  port: 8081 # 随机端口
+    name: eureka-client-a
+  main:
+    allow-bean-definition-overriding: true
+  config:
+    import:
+      - "optional:configserver:"
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: config-lab
+
 eureka:
   client:
+    password: password123 # ENC(a+9rePX8LJ8wn6WI5+0GwiPBDuwj0E+9)
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/ # 注册中心地址
-    registry-fetch-interval-seconds: 5 # 从注册中心获取服务列表的时间间隔
-    initial-instance-info-replication-interval-seconds: 1 # 初次向注册中心注册服务的时间间隔
-    instance-info-replication-interval-seconds: 5 # 向注册中心注册服务的时间间隔
+      defaultZone: http://eureka:${eureka.client.password}@localhost:8761/eureka/ # 注册中心地址（带认证）
   instance:
     preferIpAddress: true
-    lease-renewal-interval-in-seconds: 20 # 心跳时间间隔
-    lease-expiration-duration-in-seconds: 60 # 过期时间
 ribbon:
   serverListRefreshInterval: 5 # 服务列表刷新时间间隔
 
+---
+spring:
+  cloud:
+    loadbalancer:
+      clients:
+        eureka-client-c: # 服务名需与@LoadBalancerClient的name一致
+          static-uris:
+            - http://127.0.0.1:8083

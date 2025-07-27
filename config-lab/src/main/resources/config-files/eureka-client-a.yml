@@ -1,0 +1,8 @@
+spring:
+  jackson:
+    generator:
+      WRITE_BIGDECIMAL_AS_PLAIN: true # 将数字序列化为字符串
+    deserialization:
+      use-big-decimal-for-floats: true # 使用 BigDecimal 解析浮点数
+server:
+  port: 8081 # 随机端口

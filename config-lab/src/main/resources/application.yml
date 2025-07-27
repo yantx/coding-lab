@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: config-lab
+  profiles:
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: classpath:/config-files/
+    # 启用本地文件系统配置（用于开发环境）
+    enabled: true
+
+server:
+  port: 9999  # Config Server默认端口
+
+eureka:
+  client:
+    password: ENC(a+9rePX8LJ8wn6WI5+0GwiPBDuwj0E+9)
+    serviceUrl:
+      defaultZone: http://eureka:${eureka.client.password}@localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+jasypt:
+  encryptor:
+    bean: jasyptStringEncryptor

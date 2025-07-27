@@ -1,12 +1,9 @@
-package com.lab.eureka;
+package com.lab.feign.palm;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.context.annotation.Bean;
 
 /**
  * @Author:
@@ -15,12 +12,12 @@ import org.springframework.context.annotation.Bean;
  */
 @SpringBootApplication
 @EnableEurekaClient
-@EnableFeignClients
-public class ClientAApplication {
+@EnableFeignClients(basePackages = "com.lab.feign.boxing.api") // 接口所在包路径
+public class PalmApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(ClientAApplication.class, args);
-        System.out.println("Hello, ClientAApplication!");
+        SpringApplication.run(PalmApplication.class, args);
+        System.out.println("Hello, PalmApplication!");
     }
 
 }
