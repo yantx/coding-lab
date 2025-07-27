@@ -1,0 +1,93 @@
+# 应用基础配置
+spring:
+  application:
+    name: gateway-service  # 应用名称
+  cloud:
+    # Gateway 配置
+    gateway:
+      discovery:
+        locator:
+          enabled: true  # 开启服务发现
+          lower-case-service-id: true  # 服务名小写
+      routes: # 补全路由定义（核心）
+        - id: auth_route
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
+        - id: user_route
+          uri: lb://user-service
+          predicates:
+            - Path=/user/**
+      # HTTP 客户端配置
+      httpclient:
+        connect-timeout: 120000  # 连接超时(ms)
+        response-timeout: 120s   # 响应超时
+        pool:
+          type: ELASTIC  # 线程池类型: ELASTIC(弹性) 或 FIXED(固定)
+          max-idle-time: 30000  # 最大空闲时间(ms)
+          max-connections: 1000  # 最大连接数
+          acquire-timeout: 45000  # 获取连接超时(ms)
+      # 全局过滤器配置
+      default-filters:
+        - name: RequestRateLimiter  # 请求限流
+          args:
+            key-resolver: "#{@userKeyResolver}"  # 使用自定义Key解析器
+            redis-rate-limiter.replenishRate: 10  # 每秒允许的请求数
+            redis-rate-limiter.burstCapacity: 20  # 令牌桶容量
+            redis-rate-limiter.requestedTokens: 1  # 每个请求消耗的令牌数
+# Eureka 客户端配置
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/  # Eureka服务器地址
+    registry-fetch-interval-seconds: 30  # 注册表获取间隔(秒)
+  instance:
+    prefer-ip-address: true  # 使用IP注册
+    lease-renewal-interval-in-seconds: 30  # 心跳间隔(秒)
+    lease-expiration-duration-in-seconds: 90  # 租约过期时间(秒)
+
+# Resilience4j 熔断器配置
+resilience4j:
+  circuitbreaker:
+    instances:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10  # 滑动窗口大小
+        permittedNumberOfCallsInHalfOpenState: 3  # 半开状态允许的调用次数
+        slidingWindowType: COUNT_BASED  # 滑动窗口类型: COUNT_BASED(基于计数) 或 TIME_BASED(基于时间)
+        minimumNumberOfCalls: 5  # 最小调用次数(开启熔断前)
+        waitDurationInOpenState: 5s  # 熔断器从开启到半开的等待时间
+        failureRateThreshold: 50  # 失败率阈值(%)
+  retry:
+    instances:
+      default:
+        maxAttempts: 3  # 最大重试次数
+        waitDuration: 1s  # 重试间隔
+        enableExponentialBackoff: true  # 启用指数退避
+        exponentialBackoffMultiplier: 2  # 指数退避乘数
+
+# 服务器配置
+server:
+  port: 8768  # 服务端口
+
+# 日志配置
+logging:
+  level:
+    root: info
+    org.springframework.cloud.gateway: debug  # Gateway 调试日志
+    reactor.netty: debug  # Netty 调试日志
+    com.galio.gateway: debug  # 项目包日志级别
+
+# 自定义配置
+gateway:
+  auth:
+    enabled: true  # 是否开启认证
+    ignore-urls:  # 白名单URL
+      - /auth/**
+      - /actuator/**
+      - /v2/api-docs
+      - /swagger-resources/**
+      - /webjars/**
+      - /doc.html
