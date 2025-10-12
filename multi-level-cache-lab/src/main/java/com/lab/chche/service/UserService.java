@@ -58,6 +58,17 @@ public class UserService {
         simulateSlowService();
         return new ArrayList<>(userDatabase.values());
     }
+
+    @Cacheable(value = "userListCache", key = "'allUsersMap'")
+    public Map<String, List<User>> getAllUsersMap() {
+        simulateSlowService();
+        List<User> list = new ArrayList<>(userDatabase.values());
+
+        // 返回一个包含用户列表的Map
+        return new HashMap<String, List<User>>() {{
+            put("users", list);
+        }};
+    }
     
     /**
      * 更新用户信息时，同时更新用户缓存和用户列表缓存
@@ -105,7 +116,10 @@ public class UserService {
         private Long id;
         private String name;
         private String email;
-        
+
+        private UserOrg userOrg;
+
+
         public User() {
             // Default constructor for JSON deserialization
         }
@@ -123,7 +137,15 @@ public class UserService {
         public void setName(String name) { this.name = name; }
         public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
-        
+
+        public UserOrg getUserOrg() {
+            return userOrg;
+        }
+
+        public void setUserOrg(UserOrg userOrg) {
+            this.userOrg = userOrg;
+        }
+
         @Override
         public String toString() {
             return "User{" +
@@ -131,6 +153,27 @@ public class UserService {
                     ", name='" + name + '\'' +
                     ", email='" + email + '\'' +
                     '}';
+        }
+    }
+
+    public static class UserOrg {
+        private Long orgId;
+        private String orgName;
+
+        public Long getOrgId() {
+            return orgId;
+        }
+
+        public void setOrgId(Long orgId) {
+            this.orgId = orgId;
+        }
+
+        public String getOrgName() {
+            return orgName;
+        }
+
+        public void setOrgName(String orgName) {
+            this.orgName = orgName;
         }
     }
 }

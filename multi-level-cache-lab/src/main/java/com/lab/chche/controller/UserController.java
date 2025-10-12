@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -55,6 +56,8 @@ public class UserController {
      */
     @GetMapping
     public ResponseEntity<List<UserService.User>> getAllUsers() {
+        Map<String, List<UserService.User>> map = userService.getAllUsersMap();
+        map.forEach((cacheName, users) -> {System.out.println(cacheName);});
         List<UserService.User> users = userService.getAllUsers();
         Cache.ValueWrapper valueWrapper =cacheManager.getCache("userListCache").get("allUsers");
         List<UserService.User> userList = (List<UserService.User>) valueWrapper.get();

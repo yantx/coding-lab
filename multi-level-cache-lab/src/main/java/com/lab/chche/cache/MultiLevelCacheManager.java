@@ -12,8 +12,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class MultiLevelCacheManager implements CacheManager {
 
-    private final CacheManager l1CacheManager; // Caffeine
-    private final CacheManager l2CacheManager; // Redis
+    private final CacheManager l1CacheManager; // Caffeine缓存管理器
+    private final CacheManager l2CacheManager; // Redis缓存管理器
     private final RedisTemplate<String, Object> redisTemplate;
 
     public MultiLevelCacheManager(CacheManager l1CacheManager,
@@ -52,7 +52,7 @@ public class MultiLevelCacheManager implements CacheManager {
 
     @Override
     public Collection<String> getCacheNames() {
-        return l2CacheManager.getCacheNames(); // Use L2 cache names as source of truth
+        return l2CacheManager.getCacheNames(); // 使用L2缓存名称作为数据源
     }
 
     public Map<String, Object> getCacheStats(String cacheName) {
@@ -187,11 +187,15 @@ public class MultiLevelCacheManager implements CacheManager {
         public void clear() {
             l2Cache.clear();
             l1Cache.clear();
+
+            // 发布缓存清空事件到其他实例
+            redisTemplate.convertAndSend("cache:clear", name);
+
         }
 
         @Override
         public ValueWrapper putIfAbsent(Object key, Object value) {
-            // This is a simplified implementation
+            // 这是一个简化实现
             ValueWrapper existingValue = get(key);
             if (existingValue == null) {
                 put(key, value);
@@ -201,12 +205,12 @@ public class MultiLevelCacheManager implements CacheManager {
         }
 
         private void publishCacheUpdate(Object key, Object value) {
-            // Publish to Redis pub/sub for other instances to update their L1 cache
+            // 发布到Redis pub/sub，通知其他实例更新它们的L1缓存
             redisTemplate.convertAndSend("cache:update", new CacheUpdateEvent(name, key, value));
         }
 
         private void publishCacheEviction(Object key) {
-            // Publish to Redis pub/sub for other instances to evict their L1 cache
+            // 发布到Redis pub/sub，通知其他实例使它们的L1缓存失效
             redisTemplate.convertAndSend("cache:evict", new CacheEvictionEvent(name, key));
         }
         // 添加获取统计信息的方法
@@ -218,7 +222,7 @@ public class MultiLevelCacheManager implements CacheManager {
         }
     }
 
-    // Event classes for cache synchronization
+    // 用于缓存同步的事件类
     public static class CacheUpdateEvent {
         private final String cacheName;
         private final Object key;

@@ -22,21 +22,31 @@ public class CacheEvictMessageListener implements MessageListener {
     public void onMessage(Message message, byte[] pattern) {
         try {
             String channel = new String(message.getChannel());
-            if (!"cache:evict".equals(channel)) {
+            String body = new String(message.getBody());
+
+            // 处理缓存清空事件
+            if ("cache:clear".equals(channel)) {
+                String cacheName = body;
+                Cache cache = caffeineCacheManager.getCache(cacheName);
+                if (cache != null) {
+                    cache.clear();
+                }
                 return;
             }
 
-            String json = new String(message.getBody());
-            MultiLevelCacheManager.CacheEvictionEvent event = objectMapper.readValue(
-                json, MultiLevelCacheManager.CacheEvictionEvent.class);
+            // 原有的缓存失效事件处理
+            if ("cache:evict".equals(channel)) {
+                MultiLevelCacheManager.CacheEvictionEvent event = objectMapper.readValue(
+                        body, MultiLevelCacheManager.CacheEvictionEvent.class);
 
-            // Evict from local L1 cache
-            Cache cache = caffeineCacheManager.getCache(event.getCacheName());
-            if (cache != null) {
-                cache.evict(event.getKey());
+                // 从本地 L1 缓存中移除
+                Cache cache = caffeineCacheManager.getCache(event.getCacheName());
+                if (cache != null) {
+                    cache.evict(event.getKey());
+                }
             }
         } catch (Exception e) {
-            // Log error but don't propagate to prevent message listener from dying
+            // 记录错误但不要传播，防止消息监听器挂掉
             e.printStackTrace();
         }
     }
