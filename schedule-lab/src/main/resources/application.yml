@@ -1,0 +1,35 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: schedule-application
+  redis:
+    host: 192.168.1.7
+    port: 6379
+    database: 0
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: 5000ms
+        max-idle: 8
+        min-idle: 0
+    timeout: 5000ms
+    password: redis@6379
+
+# 调度器配置
+schedule:
+  enabled: true
+  thread-pool-size: 10
+  ceshi: ceshi,ceshi1,ceshi2
+
+# Actuator配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
