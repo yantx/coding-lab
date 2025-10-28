@@ -1,48 +1,59 @@
 package com.lab.schedule.web;
 
-import com.lab.schedule.core.DistributedTaskScheduler;
-import com.lab.schedule.core.executor.DistributedTaskExecutor;
+import com.lab.schedule.core.manager.DistributedTaskManager;
+import com.lab.schedule.core.registry.TaskRegistry;
 import com.lab.schedule.core.model.TaskDomain;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
+/**
+ * 合并后的任务管理控制器：提供注册/注销/触发/查询接口
+ */
 @RestController
 @RequestMapping("/api/tasks")
 public class TaskController {
 
-    private final DistributedTaskExecutor taskExecutor;
-    private final DistributedTaskScheduler taskScheduler;
+    private final DistributedTaskManager manager;
+    private final TaskRegistry registry;
 
     @Autowired
-    public TaskController(DistributedTaskExecutor taskExecutor,
-                          DistributedTaskScheduler taskScheduler) {
-        this.taskExecutor = taskExecutor;
-        this.taskScheduler = taskScheduler;
+    public TaskController(DistributedTaskManager manager, TaskRegistry registry) {
+        this.manager = manager;
+        this.registry = registry;
     }
 
     @GetMapping
-    public Map<String, TaskDomain> getAllTasks() {
-        return taskScheduler.getScheduledTasksInfo();
+    public Map<String, Object> list() {
+        return registry.getTaskInfoSnapshot();
     }
 
-    @PostMapping("/{taskName}/trigger")
-    public TaskDomain triggerTask(@PathVariable String taskName) {
-        boolean triggered = taskExecutor.triggerTask(taskName);
-        return triggered ? taskScheduler.getScheduledTasksInfo().get(taskName) : null;
+    @PostMapping
+    public Map<String, Object> register(@RequestBody TaskDomain task) {
+        manager.registerTask(task);
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("result", "registered");
+        resp.put("name", task != null ? task.getName() : null);
+        return resp;
     }
 
-    @PostMapping("/{taskName}/pause")
-    public String pauseTask(@PathVariable String taskName) {
-        boolean paused = taskExecutor.pauseTask(taskName);
-        return paused ? "任务已暂停" : "任务暂停失败或任务不存在";
+    @DeleteMapping("/{name}")
+    public Map<String, Object> unregister(@PathVariable String name) {
+        manager.unregisterTask(name);
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("result", "unregistered");
+        resp.put("name", name);
+        return resp;
     }
 
-    @PostMapping("/{taskName}/resume")
-    public String resumeTask(@PathVariable String taskName) {
-        boolean resumed = taskExecutor.resumeTask(taskName);
-        return resumed ? "任务已恢复" : "任务恢复失败或任务不存在";
+    @PostMapping("/{name}/trigger")
+    public Map<String, Object> trigger(@PathVariable String name) {
+        boolean ok = manager.triggerTask(name);
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("name", name);
+        resp.put("triggered", ok);
+        return resp;
     }
 }

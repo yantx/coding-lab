@@ -1,80 +1,58 @@
 package com.lab.schedule.config;
 
-import com.lab.schedule.core.DistributedTaskScheduler;
-import com.lab.schedule.core.TaskRegistry;
 import com.lab.schedule.core.executor.DistributedTaskExecutor;
-import com.lab.schedule.core.executor.OrderedTaskExecutor;
+import com.lab.schedule.core.DistributedTaskScheduler;
 import com.lab.schedule.core.lock.DistributedLockService;
-import com.lab.schedule.core.registry.TaskRegistryService;
-import org.redisson.api.RedissonClient;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import com.lab.schedule.core.manager.DistributedTaskManager;
+import com.lab.schedule.core.registry.TaskRegistry;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
- * 定时任务自动配置类
- * 负责配置任务调度器、分布式锁、任务注册等核心组件
+ * 自动配置：创建 Executor / Scheduler / Manager / Registry
  */
 @Configuration
 @EnableConfigurationProperties(SchedulerProperties.class)
 @ConditionalOnProperty(prefix = "schedule", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class ScheduleAutoConfiguration {
 
-    private final SchedulerProperties schedulerProperties;
-
-    public ScheduleAutoConfiguration(SchedulerProperties schedulerProperties) {
-        this.schedulerProperties = schedulerProperties;
-    }
-    
     @Bean
-    @ConditionalOnMissingBean
-    public TaskRegistry taskRegistry(DistributedTaskExecutor distributedTaskExecutor,
-                                   TaskRegistryService taskRegistryService) {
-        return new TaskRegistry(distributedTaskExecutor, taskRegistryService, schedulerProperties);
+    public DistributedTaskExecutor distributedTaskExecutor(DistributedLockService lockService) {
+        return new DistributedTaskExecutor(lockService);
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    public DistributedLockService distributedLockService(RedissonClient redissonClient) {
-        return new DistributedLockService(redissonClient);
+    @Bean("monitorTaskScheduler")
+    public TaskScheduler monitorTaskScheduler(SchedulerProperties schedulerProperties) {
+        ThreadPoolTaskScheduler sched = new ThreadPoolTaskScheduler();
+        sched.setPoolSize(schedulerProperties.getThreadPoolSize());
+        sched.setThreadNamePrefix("schedule-pool-");
+        sched.setAwaitTerminationSeconds(30);
+        sched.setWaitForTasksToCompleteOnShutdown(true);
+        sched.initialize();
+        return sched;
     }
 
     @Bean
-    @ConditionalOnMissingBean
-    public TaskRegistryService taskRegistryService(DistributedLockService lockService,
-                                                   RedisTemplate<String, Object> redisTemplate) {
-        return new TaskRegistryService(lockService,redisTemplate);
-    }
-    
-    @Bean
-    @ConditionalOnMissingBean
-    public DistributedTaskExecutor distributedTaskExecutor(
-            TaskScheduler taskScheduler,
-            DistributedLockService lockService) {
-        return new DistributedTaskExecutor(lockService, taskScheduler);
+    public DistributedTaskScheduler distributedTaskScheduler(@Qualifier("monitorTaskScheduler") TaskScheduler taskScheduler,
+                                                             DistributedTaskExecutor executor) {
+        return new DistributedTaskScheduler(taskScheduler, executor);
     }
 
     @Bean
-    @ConditionalOnMissingBean
-    public DistributedTaskScheduler distributedTaskScheduler(
-            TaskRegistry taskRegistry,
-            DistributedTaskExecutor taskExecutor,
-            OrderedTaskExecutor orderedTaskExecutor) {
-        return new DistributedTaskScheduler(taskRegistry, taskExecutor, orderedTaskExecutor);
+    public DistributedTaskManager distributedTaskManager(DistributedTaskScheduler scheduler,
+                                                         DistributedTaskExecutor executor) {
+        return new DistributedTaskManager(scheduler, executor);
     }
 
     @Bean
-    @ConditionalOnMissingBean
-    public OrderedTaskExecutor orderedTaskExecutor(
-            RedissonClient redissonClient,
-            DistributedLockService lockService,
-            TaskRegistry taskRegistry,
-            DistributedTaskExecutor distributedTaskExecutor) {
-        return new OrderedTaskExecutor(redissonClient, lockService, taskRegistry, distributedTaskExecutor);
+    public TaskRegistry taskRegistry(ApplicationContext applicationContext,
+                                     DistributedTaskManager taskManager) {
+        return new TaskRegistry(applicationContext, taskManager);
     }
-
 }

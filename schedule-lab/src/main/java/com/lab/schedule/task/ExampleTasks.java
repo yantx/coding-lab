@@ -14,6 +14,7 @@ public class ExampleTasks {
     private static final Logger logger = LoggerFactory.getLogger(ExampleTasks.class);
     // 分布式任务，不保证顺序
     @ScheduledTask(
+            enabled = false,
             name = "distributedTask",
             group = "default",
             cron = "0/5 * * * * ?",
@@ -21,7 +22,7 @@ public class ExampleTasks {
     )
     public void distributedTask() {
         // 这个任务会在分布式环境下只执行一次
-        logger.info("这个任务会在分布式环境下只执行一次 - 当前时间: {}", System.currentTimeMillis());
+        logger.info("这个任务[distributedTask]会在分布式环境下只执行一次 - 当前时间: {}", System.currentTimeMillis());
 
     }
 
@@ -35,7 +36,7 @@ public class ExampleTasks {
     public void orderTask1() {
         // 这个任务会在 orderTask2 之前执行
         // 在分布式环境下，同一个分组的任务会按顺序执行
-        logger.info("这个任务会在 orderTask2 之前执行 - 当前时间: {}", System.currentTimeMillis());
+        logger.info("这个任务[orderTask1]会在 orderTask2 之前执行 - 当前时间: {}", System.currentTimeMillis());
 
     }
 
@@ -47,7 +48,7 @@ public class ExampleTasks {
     )
     public void orderTask2() {
         // 这个任务会在 orderTask1 执行完成后执行
-        logger.info("这个任务会在 orderTask1 执行完成后执行 - 当前时间: {}", System.currentTimeMillis());
+        logger.info("这个任务[orderTask2]会在 orderTask1 执行完成后执行 - 当前时间: {}", System.currentTimeMillis());
 
     }
     /**
@@ -56,7 +57,7 @@ public class ExampleTasks {
     /**
      * 顺序组中的第一个任务，order=1，会第二个执行
      */
-    @ScheduledTask(name = "exampleTask1", cron = "0/5 * * * * ?",
+    @ScheduledTask(name = "exampleTask1", fixedRate = 10,
                   group = "sequentialGroup",
                   order = 1,
                   description = "示例任务1，order=1，在顺序组中第二个执行")
@@ -74,7 +75,7 @@ public class ExampleTasks {
     /**
      * 顺序组中的第二个任务，order=0，会第一个执行（order值越小优先级越高）
      */
-    @ScheduledTask(name = "exampleTask1a", cron = "0/10 * * * * ?",
+    @ScheduledTask(name = "exampleTask1a", fixedRate = 10,
                   group = "sequentialGroup",
                   order = 0,
                   description = "示例任务1a，order=0，在顺序组中第一个执行")
@@ -92,7 +93,7 @@ public class ExampleTasks {
     /**
      * 顺序组中的第三个任务，order=2，会第三个执行
      */
-    @ScheduledTask(name = "exampleTask1b", cron = "0/10 * * * * ?",
+    @ScheduledTask(enabled = false, name = "exampleTask1b", cron = "0/10 * * * * ?",
                   group = "sequentialGroup",
                   order = 2,
                   description = "示例任务1b，order=2，在顺序组中第三个执行")
@@ -110,7 +111,7 @@ public class ExampleTasks {
     /**
      * 固定间隔执行的任务，每隔30秒执行一次
      */
-    @ScheduledTask(name = "exampleTask2", fixedRate = 30000,
+    @ScheduledTask(enabled = false, name = "exampleTask2", fixedRate = 30000,
                   description = "示例任务2，固定间隔30秒执行一次")
     public void task2() {
         logger.info("执行示例任务2 - 当前时间: {}", System.currentTimeMillis());
@@ -119,7 +120,7 @@ public class ExampleTasks {
     /**
      * 固定延迟执行的任务，每次执行完成后延迟45秒再次执行
      */
-    @ScheduledTask(name = "exampleTask3", fixedDelay = 45000,
+    @ScheduledTask(enabled = false, name = "exampleTask3", fixedDelay = 45000,
                   description = "示例任务3，固定延迟45秒执行一次")
     public void task3() {
         try {
